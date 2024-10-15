@@ -1,0 +1,5 @@
+These files provide technical diagrams outlining the communication, hardware architecture, and operational control of a remote-controlled rover. 
+The diagrams include various components like Arduino UNO, Raspberry Pi, radio communication modules, and control signals for motors and sensors. 
+The system integrates bidirectional wireless communication between the rover and a central operations unit, allowing remote access and control over 
+the rover’s movement and data collection (e.g., CO2 levels, temperature, irradiance). These documents represent key aspects of the project, 
+focusing on the hardware setup and connections necessary for the rover's operations over long distances.
