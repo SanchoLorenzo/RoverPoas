@@ -123,7 +123,7 @@ void loop()
   dtostrf(temperatura, 6, 2, tempBuffer);
   dtostrf(humedad, 6, 2, humBuffer);
   snprintf(mensajeDatos, sizeof(mensajeDatos), "Dist: %s, Temp: %s, Hum: %s", distBuffer, tempBuffer, humBuffer);
-  //Serial.print(mensajeDatos);
+
 
   rf95.send(mensajeDatos, sizeof(mensajeDatos));
   rf95.waitPacketSent();
@@ -158,5 +158,5 @@ void loop()
 
   }
 
-
+  delay(100);
 }

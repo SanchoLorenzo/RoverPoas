@@ -99,8 +99,6 @@ void byteToBinary(byte valor, char *cadena) {
 }
 
 
-int16_t packetnum = 0;  // packet counter, we increment per xmission
-
 
 
 void loop()
