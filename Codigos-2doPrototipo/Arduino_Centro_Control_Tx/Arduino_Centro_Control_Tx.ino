@@ -24,7 +24,7 @@
 
 int xValue = 0 ; // To store value of the X axis
 int yValue = 0 ; // To store value of the Y axis
-int command = COMMAND_NO;
+
 
 bool motor1a = 0;
 bool motor1b = 0;
@@ -123,7 +123,7 @@ void loop()
   {
     //Serial.println("No reply, is there a listener around?");
   }
-  
+
   delay(100);
 }
 
