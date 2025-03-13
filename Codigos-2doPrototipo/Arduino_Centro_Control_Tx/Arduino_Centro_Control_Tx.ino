@@ -88,18 +88,6 @@ void setup()
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 }
-  
-
-// Convert int to binary
-void byteToBinary(byte valor, char *cadena) {
-  for (int i = 7; i >= 0; --i) {
-    cadena[7 - i] = ((valor >> i) & 1) ? '1' : '0';
-  }
-  cadena[8] = '\0'; // Null at last character
-}
-
-
-
 
 void loop()
 {
@@ -170,10 +158,9 @@ void loop()
       motor2b = 0;
     }
 
-    //Encode control signals into radiopacket
+    //Encode control signals
 
     byte encoded_signal = (motor2b << 3) | (motor2a << 2) | (motor1b << 1) | motor1a;
-    byteToBinary(encoded_signal, radiopacket);
     //Serial.print("Sending "); Serial.println(radiopacket);   
     rf95.send(&encoded_signal, 1);
     rf95.waitPacketSent();    
