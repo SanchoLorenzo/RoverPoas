@@ -93,77 +93,20 @@ void loop()
 {
 
 
-    char radiopacket[20];
+  char radiopacket[20];
 
-    // Joystick Read
+  // Joystick Read
 
-    xValue = analogRead(VRX_PIN);
-    yValue = analogRead(VRY_PIN);
+  xValue = analogRead(VRX_PIN);
+  yValue = analogRead(VRY_PIN);
+  actualizarMotores(xValue, yValue);  
 
-    // converts the analog value to commands
-    // reset commands
-    command = COMMAND_NO;
+  //Encode control signals
 
-    // check left/right commands
-    if (xValue < LEFT_THRESHOLD)
-      command = command | COMMAND_LEFT;
-    else if (xValue > RIGHT_THRESHOLD)
-      command = command | COMMAND_RIGHT;
-
-    // check up/down commands
-    if (yValue < UP_THRESHOLD)
-      command = command | COMMAND_UP;
-    else if (yValue > DOWN_THRESHOLD)
-      command = command | COMMAND_DOWN;
-
-
-    if (command & COMMAND_LEFT) {
-      motor1a = 1;
-      motor1b = 0;
-
-      motor2a = 0;
-      motor2b = 1;
-      // TODO: add your task here
-    }
-
-     else if (command & COMMAND_RIGHT) {
-      motor1a = 0;
-      motor1b = 1;
-
-      motor2a = 1;
-      motor2b = 0;
-    }
-
-    else if (command & COMMAND_UP) {
-      motor1a = 1;
-      motor1b = 0;
-
-      motor2a = 1;
-      motor2b = 0;
-    }
-
-    else if (command & COMMAND_DOWN) {
-      motor1a = 0;
-      motor1b = 1;
-
-      motor2a = 0;
-      motor2b = 1;
-    }
-    
-    else {
-      motor1a = 0;
-      motor1b = 0;
-
-      motor2a = 0;
-      motor2b = 0;
-    }
-
-    //Encode control signals
-
-    byte encoded_signal = (motor2b << 3) | (motor2a << 2) | (motor1b << 1) | motor1a;
-    //Serial.print("Sending "); Serial.println(radiopacket);   
-    rf95.send(&encoded_signal, 1);
-    rf95.waitPacketSent();    
+  byte encoded_signal = (motor2b << 3) | (motor2a << 2) | (motor1b << 1) | motor1a;
+  //Serial.print("Sending "); Serial.println(radiopacket);   
+  rf95.send(&encoded_signal, 1);
+  rf95.waitPacketSent();    
 
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -189,3 +132,28 @@ void loop()
   
   delay(100);
 }
+
+void actualizarMotores(int x, int y) {
+  // La función puede leer los thresholds sin problema porque son globales
+  if (y < UP_THRESHOLD) {
+    motor1a = 1; motor1b = 0;
+    motor2a = 1; motor2b = 0;
+  } 
+  else if (y > DOWN_THRESHOLD) {
+    motor1a = 0; motor1b = 1;
+    motor2a = 0; motor2b = 1;
+  } 
+  else if (x > RIGHT_THRESHOLD) {
+    motor1a = 0; motor1b = 1;
+    motor2a = 1; motor2b = 0;
+  } 
+  else if (x < UP_THRESHOLD) {
+    motor1a = 1; motor1b = 0;
+    motor2a = 0; motor2b = 1;
+  } 
+  else {
+    motor1a = 0; motor1b = 0;
+    motor2a = 0; motor2b = 0;
+  }
+}
+
