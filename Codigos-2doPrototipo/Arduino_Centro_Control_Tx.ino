@@ -172,23 +172,13 @@ void loop()
       motor2b = 0;
     }
 
-
-
     //Encode control signals into radiopacket
-
 
     byte encoded_signal = (motor2b << 3) | (motor2a << 2) | (motor1b << 1) | motor1a;
     byteToBinary(encoded_signal, radiopacket);
-
-
-
-    
-    itoa(packetnum++, radiopacket+13, 10);
-    Serial.print("Sending "); Serial.println(radiopacket);
-    radiopacket[19] = 0;    
-    rf95.send((uint8_t *)radiopacket, 20);
+    //Serial.print("Sending "); Serial.println(radiopacket);   
+    rf95.send(&encoded_signal, 1);
     rf95.waitPacketSent();    
-
 
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -196,20 +186,14 @@ void loop()
 
   //Serial.println("Waiting for reply...");
   delay(10);
+
   if (rf95.waitAvailableTimeout(100))
   { 
     // Should be a reply message for us now   
-    if (rf95.recv(buf, &len))
-   {
-      //Serial.print("Got reply: ");
+    if (rf95.recv(buf, &len)) {
       Serial.println((char*)buf);
-      //Serial.print("RSSI: ");
-      //Serial.println(rf95.lastRssi(), DEC);
-
-
     }
-    else
-    {
+    else {
       Serial.println("Receive failed");
     }
   }
@@ -217,5 +201,6 @@ void loop()
   {
     //Serial.println("No reply, is there a listener around?");
   }
+  
   delay(100);
 }

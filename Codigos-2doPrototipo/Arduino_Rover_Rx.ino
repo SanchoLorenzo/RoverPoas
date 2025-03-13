@@ -27,9 +27,9 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 DHT dht(DHTPIN, DHTTYPE);
 
-#define TRIG_PIN 9    // Pin de salida para el TRIG del HC-SR04
-#define ECHO_PIN 10   // Pin de entrada para el ECHO del HC-SR04
-
+#define TRIG_PIN 6    // Pin de salida para el TRIG del HC-SR04
+#define ECHO_PIN 7   // Pin de entrada para el ECHO del HC-SR04
+  
 // Función para inicializar los sensores
 void initSensors() {
     dht.begin();
@@ -38,17 +38,15 @@ void initSensors() {
 }
 
 // Función para leer temperatura y humedad
-float getTempHumid() {
-
-    float temperature = dht.readTemperature();
-    float humidity = dht.readHumidity();
+void getTempHumid(float &temperature, float &humidity) {
+    temperature = dht.readTemperature();
+    humidity = dht.readHumidity();
 
     if (isnan(temperature) || isnan(humidity)) {
         Serial.println("Failed to read from DHT sensor!");
-        temperature = 0;
-        humidity = 0;
+        temperature = 3;
+        humidity = 3;
     }
-    return temperature, humidity;
 }
 
 // Función para leer distancia con el sensor ultrasónico
@@ -72,9 +70,6 @@ float getDistance() {
     return distance;
 
 }
-
-
-
 
 
 void setup() 
@@ -101,32 +96,40 @@ void setup()
   }
   Serial.println("LoRa radio init OK!");
 
-  // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
     while (1);
   }
   Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
 
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-
-  // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
-  // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
+
+  initSensors();
 }
+
+
 
 void loop()
 { 
-  initSensors();
+
   float distancia = getDistance();
-  float temperatura, humedad = getTempHumid();
+  float temperatura, humedad;
+  getTempHumid(temperatura, humedad);
 
-  char mensajeDatos[50];
-  snprintf(mensajeDatos, sizeof(mensajeDatos), "Dist: %.2f, Temp: %.2f, Hum: %.2f", distancia, temperatura, humedad);
+  
+  char mensajeDatos[40];
+  char distBuffer[10], tempBuffer[10], humBuffer[10];
+
+  dtostrf(distancia, 6, 2, distBuffer);
+  dtostrf(temperatura, 6, 2, tempBuffer);
+  dtostrf(humedad, 6, 2, humBuffer);
+  snprintf(mensajeDatos, sizeof(mensajeDatos), "Dist: %s, Temp: %s, Hum: %s", distBuffer, tempBuffer, humBuffer);
+  //Serial.print(mensajeDatos);
+
+  rf95.send(mensajeDatos, sizeof(mensajeDatos));
+  rf95.waitPacketSent();
 
 
-   
   if (rf95.available())
   {
     // Should be a message for us now   
@@ -135,56 +138,26 @@ void loop()
     
     if (rf95.recv(buf, &len))
     {
-      digitalWrite(LED, HIGH);
-      //RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
-      Serial.println((char*)buf);
-      //Serial.print("RSSI: ");
-      //Serial.println(rf95.lastRssi(), DEC);
-      
-      // Send a reply
-      //uint8_t data[50] = mensajeDatos; ESTO ES PARA PASAR DE STRING A CHAR, NO HACE FALTA SI YA ES CHAR[]
-      rf95.send(mensajeDatos, sizeof(mensajeDatos));
-      rf95.waitPacketSent();
-      //Serial.println("Sent a reply");
-      digitalWrite(LED, LOW);
+      Serial.println(buf[0], BIN);
     }
     else
     {
       Serial.println("Receive failed");
     }
 
+    bool bit0 =  buf[0]       & 0x01;  // Guardar el Bit 0 (M1A)
+    bool bit1 = (buf[0] >> 1) & 0x01;  // Guardar el Bit 1 (M1A)
+    bool bit2 = (buf[0] >> 2) & 0x01;  // Guardar el Bit 2 (M1A)
+    bool bit3 = (buf[0] >> 3) & 0x01;  // Guardar el Bit 3 (M1A)
 
-    char encoded_signal[8]; 
-    strcpy(encoded_signal, buf);
-    //Serial.println( encoded_signal );
+    digitalWrite(12, bit0 ? HIGH : LOW);
+    digitalWrite(11, bit1 ? HIGH : LOW);
+    digitalWrite(10, bit2 ? HIGH : LOW);
+    digitalWrite(9,  bit3 ? HIGH : LOW);
 
-    bool signal0 = ('1' == encoded_signal[7]) ? true : false ;
-    bool signal1 = ('1' == encoded_signal[6]) ? true : false ;
-    bool signal2 = ('1' == encoded_signal[5]) ? true : false ;
-    bool signal3 = ('1' == encoded_signal[4]) ? true : false ;
-
-    //Serial.println(signal0);
-    //Serial.println(signal1);
-
-    if (signal0) {digitalWrite(12, HIGH);} 
-    else { digitalWrite(12, LOW); }
-
-    if (signal1) {digitalWrite(11, HIGH);} 
-    else { digitalWrite(11, LOW); }
-
-    if (signal2) {digitalWrite(10, HIGH);} 
-    else { digitalWrite(10, LOW); }
-
-    if (signal3) {digitalWrite(9, HIGH);} 
-    else { digitalWrite(9, LOW); }
-
-
-	
-	
 
   }
-  
-  
+
 
 }
