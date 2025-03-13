@@ -1,5 +1,5 @@
 // Arduino situado en el centro de control Tx
-// LoRa 9x_TX
+// Rover TECSPACE
 
 #include <SPI.h>
 #include <RH_RF95.h>

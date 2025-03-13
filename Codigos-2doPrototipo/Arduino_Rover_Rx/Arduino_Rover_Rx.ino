@@ -1,5 +1,4 @@
 // Arduino situado en el Rover
-// RFM9x LoRa Radio 
 // Rover TECSpace
 
 
